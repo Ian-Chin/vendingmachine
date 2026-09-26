@@ -1,0 +1,21 @@
+# Snack-O-Matic product catalogue
+# Format: code:name:emoji:price_cents:stock:category
+# price_cents = price in sen (250 = RM 2.50)
+# category    = food | drink
+# Lines starting with '#' are ignored.
+A1:Potato Chips:🥔:250:10:food
+A2:Chocolate Bar:🍫:300:8:food
+A3:Cookies:🍪:220:12:food
+A4:Popcorn:🍿:180:6:food
+A5:Peanuts:🥜:150:15:food
+A6:Sandwich:🥪:450:4:food
+A7:Instant Noodles:🍜:350:9:food
+A8:Banana Cake:🍰:400:0:food
+B1:Mineral Water:💧:120:20:drink
+B2:Cola:🥤:250:14:drink
+B3:Orange Juice:🧃:280:7:drink
+B4:Iced Coffee:🧊:380:5:drink
+B5:Hot Coffee:☕:320:11:drink
+B6:Milk Tea:🧋:420:6:drink
+B7:Energy Drink:⚡:450:3:drink
+B8:Green Tea:🍵:260:0:drink
