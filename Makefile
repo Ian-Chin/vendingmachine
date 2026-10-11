@@ -1,20 +1,30 @@
 ASM      = nasm
-ASMFLAGS = -f elf64
-LD       = ld
+ASMFLAGS = -f elf32 -I src/lib/
+LD       = ld -m elf_i386
 TARGET   = vending
+OBJ_DIR  = build
+
+SRCS     = $(wildcard src/*.asm src/screens/*.asm src/lib/*.asm)
+OBJS     = $(addprefix $(OBJ_DIR)/,$(notdir $(SRCS:.asm=.o)))
+INCS     = $(wildcard src/lib/*.inc)
+
+vpath %.asm src src/screens src/lib
 
 all: $(TARGET)
 
-$(TARGET): $(TARGET).o
-	$(LD) -o $(TARGET) $(TARGET).o
+$(TARGET): $(OBJS)
+	$(LD) -o $@ $^
 
-$(TARGET).o: $(TARGET).asm
-	$(ASM) $(ASMFLAGS) -o $(TARGET).o $(TARGET).asm
+$(OBJ_DIR)/%.o: %.asm $(INCS) | $(OBJ_DIR)
+	$(ASM) $(ASMFLAGS) -o $@ $<
+
+$(OBJ_DIR):
+	mkdir -p $@
 
 run: $(TARGET)
 	./$(TARGET)
 
 clean:
-	rm -f $(TARGET) $(TARGET).o
+	rm -rf $(TARGET) $(OBJ_DIR)
 
 .PHONY: all run clean

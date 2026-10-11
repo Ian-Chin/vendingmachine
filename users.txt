@@ -1,7 +1,3 @@
-# Snack-O-Matic account database
-# Format: username:password:role
-# Roles : supplier | customer
-# Lines starting with '#' are ignored.
 admin:admin123:supplier
 Ian:hello123:supplier
 supplier1:stock2024:supplier
