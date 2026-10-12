@@ -17,7 +17,6 @@ extern fld_start
 extern fld_end
 extern prod_buf
 extern prod_len
-extern products_path
 extern msg_no_prod
 extern clear_screen
 extern choice_buf
@@ -25,8 +24,11 @@ extern cash
 extern change_due
 extern menu_loop
 extern handle_exit
-
-CODE_MAX       equ 4
+extern normalize_code
+extern find_product
+extern print_field
+extern save_field
+extern record_sale
 
 section .data
     buy_ui:
@@ -76,13 +78,10 @@ section .data
     ; Values for payment options 1-6, in sen.
     money_vals     dd 1000, 500, 100, 50, 20, 10
 
-    tmp_path       db "products.tmp", 0
-
 section .bss
     item_price     resd 1
     item_stock     resd 1
     paid           resd 1
-    stock_txt      resb 12
 
 section .text
 
@@ -151,9 +150,14 @@ handle_buy:
 
     mov eax, [item_stock]
     dec eax
-    call save_stock
+    mov ecx, 4
+    call save_field
     test eax, eax
     jz .save_fail
+
+    ; The item is already out, so a failed log write does not undo the sale.
+    mov eax, [item_price]
+    call record_sale
 
     mov eax, [paid]
     sub eax, [item_price]
@@ -356,240 +360,4 @@ show_wallet:
 
     pop edi
     pop esi
-    ret
-
-; esi = C string. Trims spaces/tabs and uppercases in place.
-; Returns esi = trimmed start, eax = length.
-normalize_code:
-    push ecx
-
-.skip_lead:
-    mov al, byte [esi]
-    cmp al, ' '
-    je .lead_next
-    cmp al, 9
-    jne .lead_done
-.lead_next:
-    inc esi
-    jmp .skip_lead
-.lead_done:
-
-    xor ecx, ecx
-.upper:
-    mov al, byte [esi + ecx]
-    test al, al
-    jz .trim
-    cmp al, 'a'
-    jb .upper_next
-    cmp al, 'z'
-    ja .upper_next
-    sub al, 32
-    mov byte [esi + ecx], al
-.upper_next:
-    inc ecx
-    jmp .upper
-
-.trim:
-    test ecx, ecx
-    jz .done
-    mov al, byte [esi + ecx - 1]
-    cmp al, ' '
-    je .cut
-    cmp al, 9
-    jne .done
-.cut:
-    dec ecx
-    mov byte [esi + ecx], 0
-    jmp .trim
-
-.done:
-    mov eax, ecx
-    pop ecx
-    ret
-
-; edi = product code C string. Returns eax = 1 if found, with fld_start/fld_end
-; describing that product line, else 0.
-find_product:
-    push ebx
-    push ecx
-    push edx
-    push esi
-    push edi
-    push ebp
-
-    mov ebx, edi
-    xor ebp, ebp            ; ebp = line position
-
-.line:
-    cmp ebp, [prod_len]
-    jge .missing
-
-    mov al, byte [prod_buf + ebp]
-    cmp al, 10
-    je .advance
-    cmp al, 13
-    je .advance
-    cmp al, '#'
-    je .advance
-
-    mov esi, prod_buf
-    mov edi, ebp
-    mov edx, [prod_len]
-    call split_fields
-    cmp eax, 6
-    jl .advance
-
-    mov ecx, [fld_start]
-    mov edx, [fld_end]
-    sub edx, ecx
-    mov esi, prod_buf
-    mov edi, ebx
-    call str_eq_region
-    test eax, eax
-    jnz .found
-
-.advance:
-    mov edx, [prod_len]
-    mov esi, prod_buf
-    mov edi, ebp
-    call next_line_idx
-    cmp eax, ebp
-    jle .missing
-    mov ebp, eax
-    jmp .line
-
-.found:
-    mov eax, 1
-    jmp .done
-.missing:
-    xor eax, eax
-.done:
-    pop ebp
-    pop edi
-    pop esi
-    pop edx
-    pop ecx
-    pop ebx
-    ret
-
-; edi = field index of the current product line.
-print_field:
-    push ecx
-    push edx
-    push esi
-
-    mov ecx, [fld_start + edi*4]
-    mov edx, [fld_end + edi*4]
-    sub edx, ecx
-    lea esi, [prod_buf + ecx]
-    call print_n
-
-    pop esi
-    pop edx
-    pop ecx
-    ret
-
-; eax = new stock for the current product line. Rewrites products.txt with
-; that stock via a temp file + rename, so a failed write leaves the original.
-; Returns eax = 1 ok, 0 failure.
-save_stock:
-    push ebx
-    push ecx
-    push edx
-    push esi
-    push edi
-    push ebp
-
-    lea esi, [stock_txt + 12]
-    mov ebx, 10
-.conv:
-    xor edx, edx
-    div ebx
-    add dl, '0'
-    dec esi
-    mov byte [esi], dl
-    test eax, eax
-    jnz .conv
-
-    mov eax, SYS_OPEN
-    mov ebx, tmp_path
-    mov ecx, O_WRONLY | O_CREAT | O_TRUNC
-    mov edx, 0644o
-    int 0x80
-    cmp eax, 0
-    jl .fail
-    mov edi, eax            ; edi = fd
-    xor ebp, ebp            ; ebp = 1 once any write fails
-
-    mov ecx, prod_buf
-    mov edx, [fld_start + 4*4]
-    call write_all
-    or ebp, eax
-
-    mov ecx, esi
-    lea edx, [stock_txt + 12]
-    sub edx, esi
-    call write_all
-    or ebp, eax
-
-    mov eax, [fld_end + 4*4]
-    lea ecx, [prod_buf + eax]
-    mov edx, [prod_len]
-    sub edx, eax
-    call write_all
-    or ebp, eax
-
-    mov eax, SYS_CLOSE
-    mov ebx, edi
-    int 0x80
-    test ebp, ebp
-    jnz .fail
-
-    mov eax, SYS_RENAME
-    mov ebx, tmp_path
-    mov ecx, products_path
-    int 0x80
-    cmp eax, 0
-    jl .fail
-
-    mov eax, 1
-    jmp .done
-.fail:
-    xor eax, eax
-.done:
-    pop ebp
-    pop edi
-    pop esi
-    pop edx
-    pop ecx
-    pop ebx
-    ret
-
-; edi = fd, ecx = buffer, edx = length. Returns eax = 0 ok, 1 failure.
-write_all:
-    push ebx
-    push ecx
-    push edx
-
-.again:
-    test edx, edx
-    jz .ok
-    mov eax, SYS_WRITE
-    mov ebx, edi
-    int 0x80
-    cmp eax, 0
-    jle .fail
-    add ecx, eax
-    sub edx, eax
-    jmp .again
-
-.ok:
-    xor eax, eax
-    jmp .done
-.fail:
-    mov eax, 1
-.done:
-    pop edx
-    pop ecx
-    pop ebx
     ret

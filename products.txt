@@ -1,16 +1,11 @@
-# Asia Pacific Vending Machine product catalogue
-# Format: code:name:emoji:price_cents:stock:category
-# price_cents = price in sen (250 = RM 2.50)
-# category    = food | drink
-# Lines starting with '#' are ignored.
-A1:Potato Chips:🥔:250:10:food
-A2:Chocolate Bar:🍫:300:8:food
+A1:Potato Chips:🥔:200:10:food
+A2:Chocolate Bar:🍫:300:10:food
 A3:Cookies:🍪:220:10:food
-A4:Popcorn:🍿:180:6:food
+A4:Popcorn:🍿:180:10:food
 A5:Peanuts:🥜:150:10:food
 A6:Sandwich:🥪:450:4:food
 A7:Instant Noodles:🍜:350:9:food
-A8:Banana Cake:🍰:400:0:food
+A8:Banana Cake:🍰:400:3:food
 B1:Mineral Water:💧:120:10:drink
 B2:Cola:🥤:250:10:drink
 B3:Orange Juice:🧃:280:7:drink

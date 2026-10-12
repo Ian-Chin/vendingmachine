@@ -10,6 +10,15 @@ NAME_MAX       equ 32
 MAX_STOCK      equ 10
 %define MAX_STOCK_STR "10"
 
+; Product codes are short, e.g. A1.
+CODE_MAX       equ 4
+
+; Highest price the editor accepts, in sen (RM 99.90 still fits the PRICE column).
+MAX_PRICE      equ 9990
+
+; Products the sales report can tally individually.
+MAX_PRODUCTS   equ 64
+
 ; i386 syscall numbers (int 0x80: eax = number, ebx/ecx/edx = args)
 SYS_EXIT       equ 1
 SYS_READ       equ 3
@@ -23,3 +32,4 @@ SYS_IOCTL      equ 54
 O_WRONLY       equ 0x001
 O_CREAT        equ 0x040
 O_TRUNC        equ 0x200
+O_APPEND       equ 0x400

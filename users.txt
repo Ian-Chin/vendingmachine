@@ -2,4 +2,3 @@ admin:admin123:supplier
 Ian:hello123:supplier
 supplier1:stock2024:supplier
 maya:refill99:supplier
-john:pass123:customer

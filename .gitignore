@@ -1,3 +1,5 @@
 build/
 vending
 *.o
+sales.txt
+products.tmp

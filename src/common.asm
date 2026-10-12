@@ -8,7 +8,6 @@ global choice_buf
 global current_user
 global is_supplier
 global set_guest
-global show_todo
 global deny_supplier
 global cash
 global change_due
@@ -22,7 +21,6 @@ section .data
     clear_screen   db 27, "[H", 27, "[2J", 0
     str_guest      db "Guest", 0
     msg_err_choice db 10, 27,"[1;31m","  [ERROR] Invalid menu option selected!",27,"[0m",10, 0
-    msg_todo       db 27,"[0;37m","  [INFO] This screen is not built yet.",27,"[0m",10, 0
     msg_need_sup   db 10, 27,"[1;31m","  [DENIED] Supplier access required. Log in as supplier.",27,"[0m",10, 0
 
 section .bss
@@ -48,13 +46,6 @@ set_guest:
     pop edi
     pop esi
     ret
-
-show_todo:
-    call print_cstr
-    lea esi, [msg_todo]
-    call print_cstr
-    call pause_prompt
-    jmp menu_loop
 
 deny_supplier:
     lea esi, [msg_need_sup]
