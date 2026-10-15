@@ -28,14 +28,11 @@ echo_off:
     cmp eax, 0
     jl .done
 
-    xor ecx, ecx
+    mov ecx, 64
 .copy:
-    cmp ecx, 64
-    jge .copied
-    mov bl, byte [termios_orig + ecx]
-    mov byte [termios_new + ecx], bl
-    inc ecx
-    jmp .copy
+    mov bl, byte [termios_orig + ecx - 1]
+    mov byte [termios_new + ecx - 1], bl
+    loop .copy              ; ecx--, repeat while ecx != 0
 
 .copied:
     mov eax, dword [termios_new + LFLAG_OFF]

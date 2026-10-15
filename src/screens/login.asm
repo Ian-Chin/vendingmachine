@@ -40,7 +40,6 @@ section .data
     msg_login_bad  db 10, 27,"[1;31m","  [FAIL] Invalid username or password.",27,"[0m",10, 0
     msg_empty_user db 10, 27,"[1;31m","  [ERROR] Username cannot be empty.",27,"[0m",10, 0
     msg_empty_pass db 10, 27,"[1;31m","  [ERROR] Password cannot be empty.",27,"[0m",10, 0
-    msg_not_sup   db 10, 27,"[1;33m","  [DENIED] That account is a customer account, not a supplier.",27,"[0m",10, 0
     msg_no_file    db 10, 27,"[1;31m","  [ERROR] Cannot open users.txt - account database missing.",27,"[0m",10, 0
     msg_locked     db 10, 27,"[1;31m","  [LOCKED] Too many failed attempts. Returning to welcome screen.",27,"[0m",10, 0
     msg_tries      db 27,"[1;33m","  Attempts remaining: "
@@ -108,17 +107,10 @@ supplier_login:
 
     cmp eax, 1
     je .granted
-    cmp eax, 2
-    je .wrong_role
     cmp eax, -1
     je .no_file
 
     lea esi, [msg_login_bad]
-    call print_cstr
-    jmp .retry
-
-.wrong_role:
-    lea esi, [msg_not_sup]
     call print_cstr
     jmp .retry
 

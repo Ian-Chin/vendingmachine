@@ -26,7 +26,7 @@ section .bss
 
 section .text
 
-; Returns eax = 1 supplier, 2 other role, 0 no match, -1 file error.
+; Returns eax = 1 supplier account matched, 0 no match, -1 file error.
 check_login:
     push ebx
     push ecx
@@ -115,12 +115,8 @@ check_login:
     mov edi, str_supplier
     call str_eq_region
     test eax, eax
-    jnz .is_supplier
+    jz .no_match            ; only supplier accounts may log in
 
-    mov eax, 2
-    jmp .done
-
-.is_supplier:
     mov eax, 1
     jmp .done
 

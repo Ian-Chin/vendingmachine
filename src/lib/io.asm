@@ -230,16 +230,16 @@ copy_cstr:
     pop eax
     ret
 
+; edi = buffer, esi = size. Wipes the buffer back to front with LOOP.
 zero_buf:
     push ecx
 
-    xor ecx, ecx
+    mov ecx, esi
+    cmp ecx, 0
+    jle .done
 .loop:
-    cmp ecx, esi
-    jge .done
-    mov byte [edi + ecx], 0
-    inc ecx
-    jmp .loop
+    mov byte [edi + ecx - 1], 0
+    loop .loop              ; ecx--, repeat while ecx != 0
 
 .done:
     pop ecx
